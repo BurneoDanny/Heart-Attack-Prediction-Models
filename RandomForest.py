@@ -3,11 +3,11 @@ import numpy as np
 from collections import Counter
 
 class RandomForest:
-    def __init__(self, n_trees=10, max_depth=10, min_samples_split=2, n_feature=None):
+    def __init__(self, n_trees=10, max_depth=10, min_samples_split=2, n_features=None):
         self.n_trees = n_trees
         self.max_depth = max_depth
         self.min_samples_split = min_samples_split
-        self.n_features = n_feature
+        self.n_features = n_features
         self.trees = []
 
     def fit(self, X, y):
@@ -37,8 +37,15 @@ class RandomForest:
         return predictions
 
     def predict_proba(self, X):
-        """Devuelve la probabilidad de cada clase según los votos de los árboles."""
+        """Calcula las probabilidades para cada clase"""
+        # Obtener las predicciones de cada árbol
         predictions = np.array([tree.predict(X) for tree in self.trees])
         tree_preds = np.swapaxes(predictions, 0, 1)
-        proba = np.array([np.mean(pred == 1) for pred in tree_preds])  # Clase 1 como positiva
-        return np.stack([1 - proba, proba], axis=1)
+
+        # Calcular la probabilidad como la proporción de árboles que predicen cada clase
+        probs = []
+        for preds in tree_preds:
+            counts = np.bincount(preds, minlength=2)  # Contar las predicciones para cada clase
+            prob = counts / len(self.trees)  # Calcular la proporción para cada clase
+            probs.append(prob)
+        return np.array(probs)
