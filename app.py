@@ -2,16 +2,24 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import pickle
 import numpy as np
-
+import tensorflow as tf
+from preprocess_inputs import preprocess_input
 app = Flask(__name__)
 CORS(app)  # Habilitar CORS para permitir solicitudes desde el frontend
 
 # Función para cargar el modelo según el nombre del archivo
 def load_model(model_name):
-    model_path = f'models/{model_name}.pkl'
-    with open(model_path, 'rb') as f:
-        model = pickle.load(f)
-    return model
+    if model_name != 'mlp_model.best':
+        model_path = f'models/{model_name}.pkl'
+        with open(model_path, 'rb') as f:
+            model = pickle.load(f)
+        return model
+    else:
+        model_path = f'models/{model_name}.keras'
+        model = tf.keras.models.load_model(model_path)
+        return model
+
+
 
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -24,7 +32,7 @@ def predict():
 
     try:
         if model_type == 'mlp':
-            model = load_model('mlp_model')
+            model = load_model('mlp_model.best')
         elif model_type == 'logistic_regression':
             model = load_model('logistic_regression_model')
         elif model_type == 'decision_tree':
@@ -34,7 +42,7 @@ def predict():
         elif model_type == 'svm':
             model = load_model('svm_model')
         elif model_type == 'gbm':
-            model = load_model('gbm_model')
+            model = load_model('xgbm_model')
         else:
             return jsonify({"error": "Invalid model type"}), 400
     except FileNotFoundError:
@@ -43,6 +51,7 @@ def predict():
     try:
         features = np.array([[data['age'], data['gender'], data['impluse'], data['pressureHight'], 
                               data['pressureLow'], data['glucose'], data['kcm'], data['troponin']]])
+        print(features)
         if None in features:
             raise ValueError("Some input features are None")
     except KeyError as e:
@@ -51,7 +60,11 @@ def predict():
         return jsonify({"error": str(ve)}), 400
 
     try:
-        prediction = model.predict(features)[0]
+        if model_type == 'mlp' or model_type == 'gbm':
+            processed_input = preprocess_input(features)
+            prediction = model.predict(processed_input)[0]
+        else:
+            prediction = model.predict(features)[0]
     
         # Calcular la probabilidad de infarto (clase positiva)
         if hasattr(model, 'predict_proba'):

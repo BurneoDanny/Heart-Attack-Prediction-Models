@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 import tensorflow as tf
+import os
+import pickle
 import xgboost as xgb
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
@@ -11,6 +13,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import LabelEncoder
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.metrics import accuracy_score, recall_score, precision_score, f1_score, roc_auc_score, confusion_matrix, classification_report
+from evaluation_metrics import evaluate_model
 
 #normalizar los datos
 #80-20 entranamiento y prueba, rendimiento del modelo, es diferente al error del entrenamiento
@@ -19,45 +22,19 @@ from sklearn.metrics import accuracy_score, recall_score, precision_score, f1_sc
 #visualizar el comportamiento del error versus epocas, y visualizar si converge
 #como hacer que pare automatico en las epocas cuando converja
 
-data_dir = 'C:/Users/Ricardo/Desktop/Espol/S9/IA/Proyecto/Heart_Attack.csv'
-data = pd.read_csv(data_dir)
+load_dir = 'data/processed_data'
+# Cargar los datos preprocesados
+with open(os.path.join(load_dir, 'X_train.pkl'), 'rb') as f:
+    X_train = pickle.load(f)
 
-#Verificar valores nulos o datos incompletos, dar un resumen de los datos
-'''
-print(data.isnull().sum())
-print(data.isna().sum())
-print(data.dropna())
-print(data.dtypes)
-print(data.describe())
-'''
+with open(os.path.join(load_dir, 'X_test.pkl'), 'rb') as f:
+    X_test = pickle.load(f)
 
+with open(os.path.join(load_dir, 'y_train.pkl'), 'rb') as f:
+    y_train = pickle.load(f)
 
-# Convertir la variable 'class' en una variable numérica
-label_encoder = LabelEncoder()
-data['class'] = label_encoder.fit_transform(data['class'])  # 0 para 'negative', 1 para 'positive'
-
-# Separar las características (X) de la etiqueta (y)
-X = data.drop('class', axis=1).values
-y = data['class'].values
-
-# Dividir los datos en conjuntos de entrenamiento, prueba y predicción
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-X_predict = X_test[:10]
-y_true = y_test[:10]
-
-X_test = X_test[10:]
-y_test = y_test[10:]
-
-print("Datos para entrenamiento con %d ejemplos" % len(X_train))
-print("Datos para prueba con %d ejemplos" % len(X_test))
-print("Datos para predicción con %d ejemplos" % len(X_predict))
-
-# Normalizar los datos
-scaler = StandardScaler()
-X_train = scaler.fit_transform(X_train)
-X_test = scaler.transform(X_test)
-X_predict = scaler.transform(X_predict)
+with open(os.path.join(load_dir, 'y_test.pkl'), 'rb') as f:
+    y_test = pickle.load(f)
 
 # Crear el modelo MLP
 model = Sequential()
@@ -68,37 +45,19 @@ model.add(Dense(1, activation='sigmoid'))  # Capa de salida con 1 neurona
 # Compilar el modelo
 model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
 
-checkpointer = ModelCheckpoint(filepath='mnist.model.best.hdf5.keras', verbose=1, save_best_only=True)
+checkpointer = ModelCheckpoint(filepath='models/mnist.model.best.hdf5.keras', verbose=1, save_best_only=True)
 
 # Entrenar el modelo
 model.fit(X_train, y_train, epochs=50, batch_size=10, validation_split = 0.2, callbacks=[checkpointer],
           verbose=1, shuffle=True )
 
-model.load_weights('mnist.model.best.hdf5.keras')
+model.load_weights('models/mnist.model.best.hdf5.keras')
 # Evaluar el modelo
 #loss, accuracy = model.evaluate(X_test, y_test)
 #print(f'Accuracy: {accuracy * 100:.2f}%')
 
 y_pred_mlp = model.predict(X_test)
 y_pred_mlp = (y_pred_mlp > 0.5).astype(int).flatten()
-
-# Evaluar el modelo MLP
-def evaluate_model(y_true, y_pred, model_name):
-    accuracy = accuracy_score(y_true, y_pred)
-    recall = recall_score(y_true, y_pred)
-    precision = precision_score(y_true, y_pred)
-    f1 = f1_score(y_true, y_pred)
-    roc_auc = roc_auc_score(y_true, y_pred)
-    cm = confusion_matrix(y_true, y_pred)
-
-    print(f"\n{model_name} Performance:")
-    print(f"Accuracy: {accuracy:.2f}")
-    print(f"Recall (Sensitivity): {recall:.2f}")
-    print(f"Precision: {precision:.2f}")
-    print(f"F1-Score: {f1:.2f}")
-    print(f"ROC-AUC: {roc_auc:.2f}")
-    print(f"Confusion Matrix:\n{cm}")
-    print(classification_report(y_true, y_pred, target_names=['Negative', 'Positive']))
 
 # Evaluar el MLP
 evaluate_model(y_test, y_pred_mlp, "MLP (Keras)")
@@ -143,24 +102,6 @@ xgb_model.fit(X_train, y_train)
 
 # Realizar predicciones
 y_pred_xgb = xgb_model.predict(X_test)
-
-# Evaluar el modelo XGBoost
-def evaluate_model(y_true, y_pred, model_name):
-    accuracy = accuracy_score(y_true, y_pred)
-    recall = recall_score(y_true, y_pred)
-    precision = precision_score(y_true, y_pred)
-    f1 = f1_score(y_true, y_pred)
-    roc_auc = roc_auc_score(y_true, y_pred)
-    cm = confusion_matrix(y_true, y_pred)
-
-    print(f"\n{model_name} Performance:")
-    print(f"Accuracy: {accuracy:.2f}")
-    print(f"Recall (Sensitivity): {recall:.2f}")
-    print(f"Precision: {precision:.2f}")
-    print(f"F1-Score: {f1:.2f}")
-    print(f"ROC-AUC: {roc_auc:.2f}")
-    print(f"Confusion Matrix:\n{cm}")
-    print(classification_report(y_true, y_pred, target_names=['Negative', 'Positive']))
 
 # Evaluar el modelo XGBoost
 evaluate_model(y_test, y_pred_xgb, "XGBoost")
