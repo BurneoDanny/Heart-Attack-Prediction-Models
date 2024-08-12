@@ -66,7 +66,6 @@ def predict():
             prediction = model.predict(processed_input)[0]
         else:
             print(f"Model type: {type(model)}")
-
             prediction = model.predict(features)[0]
     
         # Calcular la probabilidad de infarto (clase positiva)
@@ -77,6 +76,7 @@ def predict():
             probability = None
             print("Probability is None")
         
+        print("Prediction:", prediction)
         result = "Positive (Risk of Heart Attack)" if prediction == 1 else "Negative (No Risk of Heart Attack)"
         
         response = {"prediction": result}
