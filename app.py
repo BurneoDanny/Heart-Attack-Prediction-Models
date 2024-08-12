@@ -13,6 +13,7 @@ def load_model(model_name):
         model_path = f'models/{model_name}.pkl'
         with open(model_path, 'rb') as f:
             model = pickle.load(f)
+            print(f"Loaded model from: {model_path}, type: {type(model)}")  
         return model
     else:
         model_path = f'models/{model_name}.keras'
@@ -64,6 +65,8 @@ def predict():
             processed_input = preprocess_input(features)
             prediction = model.predict(processed_input)[0]
         else:
+            print(f"Model type: {type(model)}")
+
             prediction = model.predict(features)[0]
     
         # Calcular la probabilidad de infarto (clase positiva)
