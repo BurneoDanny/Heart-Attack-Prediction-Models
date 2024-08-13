@@ -9,33 +9,32 @@ from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 import pickle
+import os
+from evaluation_metrics import evaluate_model
 
-from google.colab import drive
-drive.mount('/content/drive')
+load_dir = 'data/processed_data'
+save_dir = 'models'
+# Cargar los datos preprocesados
+with open(os.path.join(load_dir, 'X_train.pkl'), 'rb') as f:
+    X_train = pickle.load(f)
 
-data_dir = '/content/drive/MyDrive/ESPOL/IA-MATERIA/Heart Attack.csv' ## AQUI SE DEBE INSERTAR LA RUTA LOCAL DE DRIVE
-datos = pd.read_csv(data_dir)
-display(datos.head())
+with open(os.path.join(load_dir, 'X_test.pkl'), 'rb') as f:
+    X_test = pickle.load(f)
 
-## LIMPIEZA DE DATOS
-datos['class'] = datos['class'].map({'negative': 0, 'positive': 1}) # conversion de variables cualitativas a cuantitativas
-datos_filtrados = datos[datos['impulse'] <= 300] # borrar ruido de pulsos exageradamente altos.
-datos_filtrados = datos_filtrados[~((datos_filtrados['troponin'] > 9) & (datos_filtrados['class'] == 'negativa'))] # TROPONINA MAYOR A 9 NO PUEDE SER CLASE NEGATIVA / ruido
+with open(os.path.join(load_dir, 'y_train.pkl'), 'rb') as f:
+    y_train = pickle.load(f)
 
+with open(os.path.join(load_dir, 'y_test.pkl'), 'rb') as f:
+    y_test = pickle.load(f)
 
-X = datos.drop(columns='class')  # contiene todas las columnas a excepcion de class
-y = datos['class'] # contiene solo la columna de class
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
 print('Shape of X_Train set : {}'.format(X_train.shape))
 print('Shape of y_Train set : {}'.format(y_train.shape))
 print('_'*50)
 print('Shape of X_test set : {}'.format(X_test.shape))
 print('Shape of y_test set : {}'.format(y_test.shape))
 
-
-
 # Definición de los hiperparámetros
-penalties = ['l1', 'l2', 'elasticnet', 'none']
+penalties = ['l1', 'l2', 'elasticnet']
 solvers = ['newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga']
 C_values = [0.01, 0.1, 1, 10, 100]
 l1_ratios = [0.1, 0.5, 0.7]  # Solo para elasticnet
@@ -54,7 +53,7 @@ for penalty in penalties:
                 continue
             if penalty == 'elasticnet' and solver != 'saga':
                 continue
-            if penalty == 'none' and solver in ['liblinear', 'saga']:
+            if penalty == None and solver in ['liblinear', 'saga']:
                 continue
 
             # Si es elasticnet, se prueba con diferentes l1_ratios
@@ -95,6 +94,10 @@ LR = LogisticRegression(penalty=best_penalty, C=best_C, solver=best_solver, rand
 LR.fit(X_train, y_train)
 y_pred = LR.predict(X_test)
 
+
 # Evaluación final
-LR_score = accuracy_score(y_test, y_pred)
-LR_score
+evaluate_model(y_test, y_pred, "Logistic Regression")
+
+#Guardar Modelo
+with open(os.path.join(save_dir, 'logistic_regression_model.pkl'), 'wb') as f:
+    pickle.dump(LR, f)

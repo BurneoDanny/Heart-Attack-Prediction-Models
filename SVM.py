@@ -9,22 +9,24 @@ from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 import pickle
+import os
+from evaluation_metrics import evaluate_model
 
-from google.colab import drive
-drive.mount('/content/drive')
+load_dir = 'data/processed_data'
+save_dir = 'models'
+# Cargar los datos preprocesados
+with open(os.path.join(load_dir, 'X_train.pkl'), 'rb') as f:
+    X_train = pickle.load(f)
 
-data_dir = '/content/drive/MyDrive/ESPOL/IA-MATERIA/Heart Attack.csv' ## AQUI SE DEBE INSERTAR LA RUTA LOCAL DE DRIVE
-datos = pd.read_csv(data_dir)
-display(datos.head())
+with open(os.path.join(load_dir, 'X_test.pkl'), 'rb') as f:
+    X_test = pickle.load(f)
 
-## LIMPIEZA O FILTRADO DE DATOS
-datos['class'] = datos['class'].map({'negative': 0, 'positive': 1}) # conversion de variables cualitativas a cuantitativas
-datos_filtrados = datos[datos['impulse'] <= 300] # borrar ruido de pulsos exageradamente altos.
-datos_filtrados = datos_filtrados[~((datos_filtrados['troponin'] > 9) & (datos_filtrados['class'] == 'negativa'))] # TROPONINA MAYOR A 9 NO PUEDE SER CLASE NEGATIVA / ruido
+with open(os.path.join(load_dir, 'y_train.pkl'), 'rb') as f:
+    y_train = pickle.load(f)
 
-X = datos.drop(columns='class')  # contiene todas las columnas a excepcion de class
-y = datos['class'] # contiene solo la columna de class
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
+with open(os.path.join(load_dir, 'y_test.pkl'), 'rb') as f:
+    y_test = pickle.load(f)
+
 print('Shape of X_Train set : {}'.format(X_train.shape))
 print('Shape of y_Train set : {}'.format(y_train.shape))
 print('_'*50)
@@ -66,10 +68,13 @@ print('Best Gamma : ', best_gamma)
 print('Accuracy Score : ', best_acc)
 
 # Entrenar el modelo final con los mejores hiperparámetros
-SVM = SVC(kernel=best_kernel, C=best_C, gamma=best_gamma, random_state=0)
+SVM = SVC(kernel=best_kernel, C=best_C, gamma=best_gamma, random_state=0, probability=True)
 SVM.fit(X_train, y_train)
 y_pred = SVM.predict(X_test)
 
 # Evaluación final
-SVM_score = accuracy_score(y_test, y_pred)
-SVM_score
+evaluate_model(y_test, y_pred, "SVM")
+
+#Guardar Modelo
+with open(os.path.join(save_dir, 'svm_model.pkl'), 'wb') as f:
+    pickle.dump(SVM, f)

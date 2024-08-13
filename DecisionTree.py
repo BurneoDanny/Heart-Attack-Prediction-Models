@@ -111,3 +111,15 @@ class DecisionTree:
         if x[node.feature] <= node.threshold:
             return self._traverse_tree(x, node.left)
         return self._traverse_tree(x, node.right)
+
+    def predict_proba(self, X):
+        return np.array([self._traverse_tree_proba(x, self.root) for x in X])
+
+    def _traverse_tree_proba(self, x, node):
+        if node.is_leaf_node():
+            total_counts = sum(node.class_counts.values())
+            return [node.class_counts.get(i, 0) / total_counts for i in range(len(node.class_counts))]
+
+        if x[node.feature] <= node.threshold:
+            return self._traverse_tree_proba(x, node.left)
+        return self._traverse_tree_proba(x, node.right)

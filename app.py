@@ -61,17 +61,21 @@ def predict():
         return jsonify({"error": str(ve)}), 400
 
     try:
-        if model_type == 'mlp' or model_type == 'gbm':
+        if model_type == 'mlp':
             processed_input = preprocess_input(features)
-            prediction = model.predict(processed_input)[0]
+            prediction_pr = model.predict(processed_input)[0]
+            prediction = (prediction_pr > 0.5).astype(int).flatten()
         else:
             print(f"Model type: {type(model)}")
-            prediction = model.predict(features)[0]
+            processed_input = preprocess_input(features)
+            prediction = model.predict(processed_input)[0]
     
         # Calcular la probabilidad de infarto (clase positiva)
         if hasattr(model, 'predict_proba'):
             probability = model.predict_proba(features)[0][1] * 100  # Clase positiva es la segunda columna
             print("Probability:", probability)
+        elif model_type == 'mlp':
+            probability = prediction_pr * 100
         else:
             probability = None
             print("Probability is None")

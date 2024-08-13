@@ -46,7 +46,7 @@ print(X_test)
 print(y_pred_xgb)
 print(y_test)
 # Evaluar el modelo XGBoost
-evaluate_model(y_test, y_pred_xgb, "XGBoost")
+evaluate_model(y_test, y_pred_xgb, "GBM model")
 
 # Guardar el modelo entrenado
 with open(os.path.join(save_dir, 'xgbm_model.pkl'), 'wb') as f:

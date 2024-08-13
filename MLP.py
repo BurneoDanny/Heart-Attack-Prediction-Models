@@ -39,10 +39,10 @@ model.add(Dense(1, activation='sigmoid'))  # Capa de salida con 1 neurona
 # Compilar el modelo
 model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
 
-checkpointer = ModelCheckpoint(filepath='models/mlp1.model.best.hdf5.keras', verbose=1, save_best_only=True)
+checkpointer = ModelCheckpoint(filepath='models/mlp_model.best.keras', verbose=1, save_best_only=True)
 
 # Entrenar el modelo
-model.fit(X_train, y_train, epochs=100, batch_size=10, validation_split = 0.2, callbacks=[checkpointer],
+model.fit(X_train, y_train, epochs=150, batch_size=10, validation_split = 0.2, callbacks=[checkpointer],
          verbose=1, shuffle=True )
 
 # Evaluar el modelo
