@@ -59,7 +59,7 @@ for penalty in penalties:
             # Si es elasticnet, se prueba con diferentes l1_ratios
             if penalty == 'elasticnet':
                 for l1_ratio in l1_ratios:
-                    LR = LogisticRegression(penalty=penalty, C=C, solver=solver, l1_ratio=l1_ratio, random_state=0, max_iter=1000)
+                    LR = LogisticRegression(penalty=penalty, C=C, solver=solver, l1_ratio=l1_ratio, random_state=0, max_iter=10000)
                     LR.fit(X_train, y_train)
                     y_pred = LR.predict(X_test)
                     score = accuracy_score(y_test, y_pred)

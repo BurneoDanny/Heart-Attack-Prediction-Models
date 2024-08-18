@@ -3,6 +3,7 @@ from flask_cors import CORS
 import pickle
 import numpy as np
 import tensorflow as tf
+import math
 from preprocess_inputs import preprocess_input
 app = Flask(__name__)
 CORS(app)  # Habilitar CORS para permitir solicitudes desde el frontend
@@ -21,7 +22,9 @@ def load_model(model_name):
         return model
 
 
-
+def truncar_dos_decimales(numero):
+    factor = 10 ** 2
+    return math.floor(numero * factor) / factor
 @app.route('/predict', methods=['POST'])
 def predict():
     data = request.json
@@ -63,19 +66,24 @@ def predict():
     try:
         if model_type == 'mlp':
             processed_input = preprocess_input(features)
-            prediction_pr = model.predict(processed_input)[0]
-            prediction = (prediction_pr > 0.5).astype(int).flatten()
+            prediction = model.predict(processed_input)[0]
+
         else:
             print(f"Model type: {type(model)}")
             processed_input = preprocess_input(features)
             prediction = model.predict(processed_input)[0]
-    
+
         # Calcular la probabilidad de infarto (clase positiva)
         if hasattr(model, 'predict_proba'):
-            probability = model.predict_proba(features)[0][1] * 100  # Clase positiva es la segunda columna
+            probability = model.predict_proba(features)[0][1] * 100 # Clase positiva es la segunda columna
             print("Probability:", probability)
         elif model_type == 'mlp':
-            probability = prediction_pr * 100
+            if prediction > 0.5:
+                probability = prediction[0] * 100
+                prediction = 1
+            else:
+                probability = (prediction[0] * -100) + 100
+                prediction = 0
         else:
             probability = None
             print("Probability is None")
@@ -85,7 +93,7 @@ def predict():
         
         response = {"prediction": result}
         if probability is not None:
-            response["percentage"] = f"{probability:.2f}%"
+            response["percentage"] = f"{truncar_dos_decimales(probability):.2f}%"
         
         print("Response:", response)
         
