@@ -101,5 +101,10 @@ def predict():
     except Exception as e:
         return jsonify({"error": f"Prediction failed: {str(e)}"}), 500
 
+@app.route('/')
+def index():
+    return "If you can see this message, backend is running! and you can start making predictions in the frontend."
+
+
 if __name__ == '__main__':
     app.run(debug=True)
