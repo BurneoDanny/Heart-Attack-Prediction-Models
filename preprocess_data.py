@@ -62,16 +62,9 @@ print(valor_minimo_tro)
 filtered_data = filtered_data[~((filtered_data['troponin'] > 9) & (filtered_data['class'] == 'negative'))]
 print(filtered_data.shape)
 
-
-
-
 # Convertir la variable 'class' en una variable numérica
 label_encoder = LabelEncoder()
 filtered_data['class'] = label_encoder.fit_transform(filtered_data['class'])  # 0 para 'negative', 1 para 'positive'
-
-# Separar las características (X) de la etiqueta (y)
-X = filtered_data.drop('class', axis=1).values
-y = filtered_data['class'].values
 
 # Extraer 4 registros aleatorios de cada clase para predicción
 negative_sample = filtered_data[filtered_data['class'] == 0].sample(4, random_state=42)
@@ -79,13 +72,18 @@ positive_sample = filtered_data[filtered_data['class'] == 1].sample(4, random_st
 
 # Combinar las muestras seleccionadas
 selected_samples = pd.concat([negative_sample, positive_sample])
-print(selected_samples)
 selected_samples.to_csv('data/prediction_data/prediction_samples.csv', index=False)
 print("Los datos seleccionados han sido guardados en 'prediction_samples.csv'.")
+print(selected_samples)
 
 # Eliminar los registros seleccionados del dataset original
 filtered_data = filtered_data.drop(selected_samples.index)
+print("Dimension del dataset actual")
 print(filtered_data.shape)
+
+# Separar las características (X) de la etiqueta (y)
+X = filtered_data.drop('class', axis=1).values
+y = filtered_data['class'].values
 
 #Técnica SMOTE para balancear las clases de los datos
 smote = SMOTE(sampling_strategy='auto', random_state=42)

@@ -19,7 +19,6 @@ def load_model(model_name):
             print(f"Loaded model from: {model_path}, type: {type(model)}")
         return model
     else:
-        print("BRO")
         model_path = f'models/{model_name}.keras'
         model = tf.keras.models.load_model(model_path)
         return model
