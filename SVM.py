@@ -50,7 +50,7 @@ for kernel in kernels:
     for C in C_values:
         for gamma in gammas:
             # Entrenamiento del modelo SVM
-            SVM = SVC(kernel=kernel, C=C, gamma=gamma, random_state=0, max_iter=10000)
+            SVM = SVC(kernel=kernel, C=C, gamma=gamma, random_state=0, max_iter=1000000)
             SVM.fit(X_train, y_train)
             y_pred = SVM.predict(X_test)
             score = accuracy_score(y_test, y_pred)

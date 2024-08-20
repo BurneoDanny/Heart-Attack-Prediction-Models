@@ -8,6 +8,7 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.initializers import HeNormal, HeUniform
 from tensorflow.keras.callbacks import ModelCheckpoint
+from tensorflow.keras.initializers import RandomUniform
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import LabelEncoder
@@ -32,9 +33,9 @@ with open(os.path.join(load_dir, 'y_test.pkl'), 'rb') as f:
 
 # Crear el modelo MLP
 model = Sequential()
-model.add(Dense(16, input_dim=X_train.shape[1], activation='relu'))  # Capa oculta con He initialization
-model.add(Dense(8, activation='relu' ))# Otra capa oculta con He initialization
-model.add(Dense(1, activation='sigmoid'))  # Capa de salida con 1 neurona
+model.add(Dense(16, input_dim=X_train.shape[1], activation='relu', kernel_initializer=RandomUniform(minval=-0.05, maxval=0.05, seed=123)))  # Capa oculta con He initialization
+model.add(Dense(8, activation='relu', kernel_initializer=RandomUniform(minval=-0.05, maxval=0.05, seed=123)))# Otra capa oculta con He initialization
+model.add(Dense(1, activation='sigmoid', kernel_initializer=RandomUniform(minval=-0.05, maxval=0.05, seed=123)))  # Capa de salida con 1 neurona
 
 # Compilar el modelo
 model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
@@ -42,7 +43,7 @@ model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy']
 checkpointer = ModelCheckpoint(filepath='models/mlp_model.best.keras', verbose=1, save_best_only=True)
 
 # Entrenar el modelo
-model.fit(X_train, y_train, epochs=150, batch_size=10, validation_split = 0.2, callbacks=[checkpointer],
+model.fit(X_train, y_train, epochs=600, batch_size=10, validation_split = 0.2, callbacks=[checkpointer],
          verbose=1, shuffle=True )
 
 # Evaluar el modelo
