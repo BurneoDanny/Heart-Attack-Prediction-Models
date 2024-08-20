@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 absl-py==2.1.0
 asttokens==2.4.1
 astunparse==1.6.3
@@ -104,20 +103,3 @@ Werkzeug==3.0.1
 wheel==0.43.0
 wrapt==1.16.0
 xgboost==2.1.1
-=======
-certifi==2023.7.22
-Flask==3.0.2
-Flask-Cors==4.0.0
-keras==3.0.5
-Markdown==3.6
-matplotlib==3.8.4
-matplotlib-inline==0.1.6
-numpy==1.26.4
-pyzmq==25.1.2
-requests==2.31.0
-scikit-learn==1.5.1
-tensorflow==2.16.1
-tensorflow-hub==0.12.0
-xgboost==2.1.1
-imbalanced-learn==0.12.3
->>>>>>> 8830608a61539c1d3a54db5184ac718aabf83500
